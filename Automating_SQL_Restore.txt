@@ -1,6 +1,5 @@
---December 2017  Bak,Log restore
+--December 2017  Log restore
 --Find latest backup copy from the folder
---Created by XAVIER FERNANDES,15/08/2019
 
 IF OBJECT_ID('tempdb..#BackUpFilesAvailable') IS NOT NULL
     DROP  TABLE #BackUpFilesAvailable
@@ -8,12 +7,14 @@ ELSE
 
 DECLARE  @LatestBackupFile  nvarchar(255)
 DECLARE  @BackUpFolder  nvarchar(255)
-DECLARE @query nvarchar(max)
+declare @query nvarchar(max)
 DECLARE @dbFILENAME NVARCHAR(MAX)
-DECLARE @Command1 varchar(max)='RESTORE LOG  [MP1]  FROM DISK   = '  
-DECLARE @Command2 VARCHAR(MAX)='Z:\Restores\2018 Jan\TRANS_LOG\MP1\' --Change the path
+DECLARE @Command1 varchar(max)='RESTORE LOG  [MP1]  FROM DISK   = '
+DECLARE @Command2 VARCHAR(MAX)='Z:\Restores\2019 Jan\TRANS_LOG\MP1\'
 
 
+SET @LatestBackupFile = null
+SET @BackUpFolder = 'Z:\Restores\2019 Jan\TRANS_LOG\MP1\'
 
 
 CREATE TABLE #BackUpFilesAvailable (id int identity(1,1),
@@ -28,17 +29,16 @@ EXEC xp_dirtree @BackUpFolder,0,1
 
 
 DECLARE db_cursor CURSOR FOR 
-SELECT FileName from #BackUpFilesAvailable
-WHERE id>120 --adjust this clause
-ORDER BY FileName 
+select FileName from #BackUpFilesAvailable
+order by FileName 
  
-OPEN db_cursor  
+  OPEN db_cursor  
 FETCH NEXT FROM db_cursor INTO @dbFILENAME 
 
 WHILE @@FETCH_STATUS = 0  
 BEGIN
-SET    @query= @Command1+ ' ' +''''+@Command2+@dbFILENAME+''''+'  WITH file=1,NOUNLOAD,NORECOVERY;'
-SELECT @dbFILENAME
+set    @query= @Command1+ ' ' +''''+@Command2+@dbFILENAME+''''+'  WITH file=1,NOUNLOAD,NORECOVERY;'
+print @dbFILENAME
  EXEC sp_executesql @query
 
 FETCH NEXT FROM db_cursor INTO @dbFILENAME 
